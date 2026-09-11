@@ -23,7 +23,6 @@ Credits to Svg repo of the menu bar icon.
 # Installation
 To use, download the app from releases.
 
-What the menu bar looks like: <img width="109" height="32" alt="Screenshot 2026-09-11 at 7 28 09 pm" src="https://github.com/user-attachments/assets/ec29eb25-0d19-4ea6-a0a5-d131dd4e6d25" />
 
 # Note
 For mac m chip series only, intel one's won't work. Tested on M2.
