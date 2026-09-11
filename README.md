@@ -22,7 +22,7 @@ Click menu bar icon to pause, right click for additional stuff
 Left click to dismiss 
 
 <p align="center">
-  <a href="https://github.com/your-username/eyebreak/releases/latest">
+  <a href="https://github.com/sigma-prog/Eyebreak/releases/tag/v1.1">
     <img src="https://img.shields.io/badge/Download-Latest_Release-007AFF?style=for-the-badge&logo=apple&logoColor=white" alt="Download Eyebreak" />
   </a>
 </p>
