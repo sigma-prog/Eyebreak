@@ -1,6 +1,10 @@
 # Eyebreak
-Reduce eye strain.
+
 A minimalist, lightweight tool designed to reduce digital eye strain
+
+[![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon-blue?logo=apple&style=flat-square)](#compatibility)
+[![Release](https://img.shields.io/badge/release-v1.1-brightgreen?style=flat-square)](https://github.com/your-username/eyebreak/releases)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](#license)
 
 # v1.1
 
@@ -16,13 +20,18 @@ Menu bar icon for easy use
 
 Click menu bar icon to pause, right click for additonal stuff
 
+Left click to dismiss 
+
 # Credits
 Code by me.
-Credits to Svg repo of the menu bar icon.
+Menu bar icon sourced from [SVG Repo](https://www.svgrepo.com/).
 
 # Installation
 To use, download the app from releases.
 
 
 # Note
+[!IMPORTANT]
 For mac m chip series only, intel one's won't work. Tested on M2.
+
+This project is licensed under the MIT License
