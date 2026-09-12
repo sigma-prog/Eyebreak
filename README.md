@@ -14,30 +14,19 @@ What the menu bar looks like:
 <img width="109" height="32" alt="Screenshot 2026-09-11 at 7 28 09 pm" src="https://github.com/user-attachments/assets/ec29eb25-0d19-4ea6-a0a5-d131dd4e6d25" />
 
 # Specs:
-
-Uses around 1.5% cpu
-
-10mb of memory
+- Uses around 1.5% CPU
+- 10 MB of memory
 
 # Features:
-
-A small notice will popup when the time is up
-
-Menu bar icon for easy use
-
-Click menu bar icon to pause
-
-Right click for options like reset and quit
-
-Left click the message to dismiss 
-
-Double click the icon to expand and collapse (v1.2)
-
-Optimized further (v1.2)
-
-Added haptics (v1.2)
-
-Music plays when break is up (v1.2)
+- A small notice will popup when the time is up
+- Menu bar icon for easy use
+- Click menu bar icon to pause
+- Right click for options like reset and quit
+- Left click the message to dismiss 
+- Double click the icon to expand and collapse (v1.2)
+- Optimized further (v1.2)
+- Added haptics (v1.2)
+- Music plays when break is up (v1.2)
 
 
 # Credits
