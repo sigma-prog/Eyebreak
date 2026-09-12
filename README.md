@@ -15,13 +15,15 @@ What the menu bar looks like:
 
 # Features:
 
-A notice will float down from the notch overlaying what ever you are doing.
+A small notice will popup when the time is up
 
 Menu bar icon for easy use
 
-Click menu bar icon to pause, right click for additional stuff
+Click menu bar icon to pause
 
-Left click to dismiss 
+Right click for options like reset and quit
+
+Left click the message to dismiss 
 
 
 # Credits
