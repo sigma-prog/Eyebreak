@@ -9,7 +9,9 @@ A minimalist, lightweight tool designed to reduce digital eye strain
 
 <img width="1202" height="272" alt="demo" src="https://github.com/user-attachments/assets/097924d6-5362-4e0c-a2a1-441634c3ff17" />
 
-What the menu bar looks like: <img width="109" height="32" alt="Screenshot 2026-09-11 at 7 28 09 pm" src="https://github.com/user-attachments/assets/ec29eb25-0d19-4ea6-a0a5-d131dd4e6d25" />
+What the menu bar looks like:
+
+<img width="109" height="32" alt="Screenshot 2026-09-11 at 7 28 09 pm" src="https://github.com/user-attachments/assets/ec29eb25-0d19-4ea6-a0a5-d131dd4e6d25" />
 
 # Features:
 
