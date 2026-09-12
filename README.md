@@ -3,7 +3,7 @@
 A minimalist, lightweight tool designed to reduce digital eye strain
 
 [![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon-blue?logo=apple&style=flat-square)](#compatibility)
-![Release](https://img.shields.io/badge/release-v1.2-brightgreen?style=flat-square)]
+![Release](https://img.shields.io/badge/release-v1.2-brightgreen?style=flat-square)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](#license)
 [![Built with Swift](https://img.shields.io/badge/Built%20with-Swift-FA7343?style=flat-square&logo=swift&logoColor=white)](#)
 
@@ -16,6 +16,7 @@ What the menu bar looks like:
 # Specs:
 
 Uses around 1.5% cpu
+
 10mb of memory
 
 # Features:
@@ -41,6 +42,7 @@ Music plays when break is up (v1.2)
 
 # Credits
 Code by me.
+
 Menu bar icon sourced from [SVG Repo](https://www.svgrepo.com/).
 
 Short music from Andrew Applepie - Berlin
@@ -58,6 +60,10 @@ Short music from Andrew Applepie - Berlin
 > xattr -cr /Applications/EyeBreak.app
 > ```
 
+The download is only for mac M series chips only (M1, M2 , M3 ...), intel chips won't work.
+
+This project is licensed under the MIT License
+
 # Compiling
 
 If you are on an Intel Mac or prefer compiling yourself:
@@ -66,8 +72,3 @@ If you are on an Intel Mac or prefer compiling yourself:
 git clone https://github.com/sigma-prog/Eyebreak.git
 cd Eyebreak
 swiftc src/*.swift -o EyeBreak && ./EyeBreak &
-
-
-The download is only for mac M series chips only (M1, M2 , M3 ...), intel chips won't work.
-
-This project is licensed under the MIT License
