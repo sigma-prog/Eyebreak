@@ -11,6 +11,12 @@ A minimalist, lightweight tool designed to reduce digital eye strain
 
 What the menu bar looks like: <img width="109" height="32" alt="Screenshot 2026-09-11 at 7 28 09 pm" src="https://github.com/user-attachments/assets/ec29eb25-0d19-4ea6-a0a5-d131dd4e6d25" />
 
+<p align="center">
+  <a href="https://github.com/sigma-prog/Eyebreak/releases/tag/v1.1">
+    <img src="https://img.shields.io/badge/Download-Latest_Release-007AFF?style=for-the-badge&logo=apple&logoColor=white" alt="Download Eyebreak" />
+  </a>
+</p>
+
 # Features:
 
 A notice will float down from the notch overlaying what ever you are doing.
@@ -21,11 +27,6 @@ Click menu bar icon to pause, right click for additional stuff
 
 Left click to dismiss 
 
-<p align="center">
-  <a href="https://github.com/sigma-prog/Eyebreak/releases/tag/v1.1">
-    <img src="https://img.shields.io/badge/Download-Latest_Release-007AFF?style=for-the-badge&logo=apple&logoColor=white" alt="Download Eyebreak" />
-  </a>
-</p>
 
 # Credits
 Code by me.
