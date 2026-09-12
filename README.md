@@ -28,6 +28,7 @@ Menu bar icon sourced from [SVG Repo](https://www.svgrepo.com/).
 
 # Installation
 To use, download the app from releases. Or click the download button below.
+
 [![Download for macOS](https://img.shields.io/badge/Download_for_macOS-Latest_Release-1d1d1f?style=flat&logo=apple&logoColor=white)](https://github.com/sigma-prog/Eyebreak/releases/latest)
 
 
