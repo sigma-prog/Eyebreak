@@ -34,7 +34,7 @@ Code by me.
 
 Menu bar icon sourced from [SVG Repo](https://www.svgrepo.com/).
 
-Short music from Andrew Applepie - Berlin
+Break music from Andrew Applepie - Berlin
 
 # Installation
 1. Download the latest release:
