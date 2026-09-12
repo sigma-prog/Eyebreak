@@ -1,139 +1,108 @@
 import Cocoa
 import SwiftUI
+import AVFoundation
+
 // config
-let WORK_DURATION_SECONDS = 20 * 60 // 20 minutes
-let BREAK_DURATION_SECONDS = 30     
-let AUTO_RESTART = true             
-let SHOW_TIME_IN_MENU_BAR = true   
+let WORK_SECONDS = 20 * 60 // 20 mins 
+let BREAK_SECONDS = 30     // 30 secs 
+
 
 class BreakModel: ObservableObject {
     @Published var secondsRemaining: Int
     @Published var isVisible = false
-    var isDismissed = false
-    var onDismissAnimationDone: (() -> Void)?
-
-    init(secondsRemaining: Int) {
-        self.secondsRemaining = secondsRemaining
-    }
-
-    func dismissPopup() {
-        guard !isDismissed else { return }
-        isDismissed = true
-        withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
-            isVisible = false
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
-            self?.onDismissAnimationDone?()
-        }
-    }
+    init(seconds: Int) { self.secondsRemaining = seconds }
 }
 
-// Notch alert
 struct NotchBreakView: View {
     @ObservedObject var model: BreakModel
+    var onDismiss: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
                 Image(systemName: "eye.fill")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white)
                 Text("Look outside: \(model.secondsRemaining)s")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
                     .monospacedDigit()
             }
+            .foregroundColor(.white)
             .padding(.horizontal, 22)
             .padding(.vertical, 11)
             .background(
                 Capsule()
-                    .fill(Color.black.opacity(0.78))
+                    .fill(Color.black.opacity(0.8))
                     .background(.ultraThinMaterial, in: Capsule())
-                    .overlay(
-                        Capsule()
-                            .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5)
-                    )
+                    .overlay(Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5))
             )
-            .contentShape(Capsule())
-            .shadow(color: Color.black.opacity(0.35), radius: 14, x: 0, y: 6)
             .scaleEffect(model.isVisible ? 1.0 : 0.45, anchor: .top)
             .offset(y: model.isVisible ? 0 : -42)
             .opacity(model.isVisible ? 1.0 : 0.0)
             .padding(.top, 10)
-            .onTapGesture {
-                model.dismissPopup()
-            }
+            .onTapGesture { onDismiss() }
 
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
-                withAnimation(.spring(response: 0.46, dampingFraction: 0.62)) {
-                    model.isVisible = true
-                }
+            withAnimation(.spring(response: 0.46, dampingFraction: 0.62)) {
+                model.isVisible = true
             }
         }
     }
 }
 
-// Menu bar
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
     var timer: Timer?
     var isRunning = false
     var isBreakActive = false
+    var isExpanded = false
     var wasRunningBeforeSleep = false
     
-    var workSecondsRemaining = WORK_DURATION_SECONDS
-    var breakSecondsRemaining = BREAK_DURATION_SECONDS
+    var workSeconds = WORK_SECONDS
+    var breakSeconds = BREAK_SECONDS
     var targetEndTime: Date?
     
     var breakModel: BreakModel?
     var popupWindow: NSPanel?
+    var audioPlayer: AVAudioPlayer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if let res = Bundle.main.resourcePath { FileManager.default.changeCurrentDirectoryPath(res) }
+
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         guard let button = statusItem.button else { return }
 
         button.image = loadIcon()
-        button.imagePosition = .imageLeft
+        button.imagePosition = .imageOnly
         button.font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium)
         button.target = self
-        button.action = #selector(statusBarClicked(_:))
+        button.action = #selector(statusBarClicked)
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
 
-        updateDisplay()
-
+        // Listen
         let ws = NSWorkspace.shared.notificationCenter
-        ws.addObserver(self, selector: #selector(macWillSleep), name: NSWorkspace.willSleepNotification, object: nil)
-        ws.addObserver(self, selector: #selector(macWillSleep), name: NSWorkspace.screensDidSleepNotification, object: nil)
-        ws.addObserver(self, selector: #selector(macDidWake), name: NSWorkspace.didWakeNotification, object: nil)
-        ws.addObserver(self, selector: #selector(macDidWake), name: NSWorkspace.screensDidWakeNotification, object: nil)
+        for n in [NSWorkspace.willSleepNotification, NSWorkspace.screensDidSleepNotification] {
+            ws.addObserver(self, selector: #selector(macSleep), name: n, object: nil)
+        }
+        for n in [NSWorkspace.didWakeNotification, NSWorkspace.screensDidWakeNotification] {
+            ws.addObserver(self, selector: #selector(macWake), name: n, object: nil)
+        }
+
+        updateDisplay()
+        startTimer()
     }
 
     func loadIcon() -> NSImage {
-        if let bundleURL = Bundle.main.url(forResource: "eye", withExtension: "svg"),
-           let img = NSImage(contentsOf: bundleURL) {
-            img.size = NSSize(width: 18, height: 18)
-            img.isTemplate = true
-            return img
-        }
-
-        let localURL = URL(fileURLWithPath: "Assets/eye.svg")
-        if let img = NSImage(contentsOf: localURL) {
-            img.size = NSSize(width: 18, height: 18)
-            img.isTemplate = true
-            return img
-        }
-
-        let fallback = NSImage(systemSymbolName: "eye", accessibilityDescription: "Eye Timer") ?? NSImage()
-        fallback.isTemplate = true
-        return fallback
+        let img = NSImage(contentsOfFile: "Assets/eye.svg") ?? NSImage(contentsOfFile: "../Assets/eye.svg") ?? NSImage()
+        img.size = NSSize(width: 18, height: 18)
+        img.isTemplate = true
+        return img
     }
 
-    @objc func macWillSleep() {
+    // Sleep & Wake
+    @objc func macSleep() {
         if isRunning {
             wasRunningBeforeSleep = true
             pauseTimer()
@@ -141,218 +110,192 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         closePopup()
     }
 
-    @objc func macDidWake() {
+    @objc func macWake() {
         if wasRunningBeforeSleep {
             wasRunningBeforeSleep = false
             startTimer()
-        } else {
-            updateDisplay()
         }
     }
 
-    func formatTime(_ totalSeconds: Int) -> String {
-        let mins = totalSeconds / 60
-        let secs = totalSeconds % 60
-        if mins > 0 {
-            return String(format: "%dm %02ds", mins, secs)
-        } else {
-            return "\(secs)s"
+    func playBreakSound() {
+        let paths = ["Assets/break.mp3", "assets/break.mp3", "../Assets/break.mp3", "break.mp3"]
+        guard let path = paths.first(where: { FileManager.default.fileExists(atPath: $0) }) else { return }
+
+        audioPlayer = try? AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
+        audioPlayer?.volume = 1.0
+        audioPlayer?.play()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+            self?.audioPlayer?.setVolume(0, fadeDuration: 2.0)
+        }
+    }
+
+    func triggerHaptics() {
+        NSApp.activate(ignoringOtherApps: true)
+        for i in 0..<20 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + (Double(i) * 0.1)) {
+                NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
+            }
         }
     }
 
     func updateDisplay() {
         guard let button = statusItem.button else { return }
+        let s = isBreakActive ? breakSeconds : workSeconds
+        let timeStr = s >= 60 ? String(format: "%dm %02ds", s / 60, s % 60) : "\(s)s"
 
-        if !SHOW_TIME_IN_MENU_BAR {
+        button.toolTip = nil
+
+        if isExpanded || isBreakActive {
+            button.imagePosition = .imageLeft
+            button.title = " \(timeStr)"
+            button.alphaValue = (isRunning || isBreakActive) ? 1.0 : 0.4
+        } else {
             button.title = ""
+            button.imagePosition = .imageOnly
             button.alphaValue = isRunning ? 1.0 : 0.4
-            return
-        }
-
-        if isBreakActive {
-            button.title = " \(formatTime(breakSecondsRemaining))"
-            button.alphaValue = 1.0
-        } else if isRunning {
-            button.title = " \(formatTime(workSecondsRemaining))"
-            button.alphaValue = 1.0
-        } else {
-            button.title = " Paused"
-            button.alphaValue = 0.4
         }
     }
 
-    @objc func statusBarClicked(_ sender: NSStatusBarButton) {
-        let event = NSApp.currentEvent
-        
-        // right click
-        if event?.type == .rightMouseUp {
-            let menu = NSMenu()
+    // Clicks
+    @objc func statusBarClicked() {
+        guard let event = NSApp.currentEvent else { return }
 
-            let pauseTitle = isRunning ? "Pause" : "Resume"
-            let pauseItem = NSMenuItem(title: pauseTitle, action: #selector(toggleTimer), keyEquivalent: "")
-            pauseItem.target = self
-            menu.addItem(pauseItem)
-
-            menu.addItem(NSMenuItem.separator())
-
-            let quitItem = NSMenuItem(title: "Quit Eye Timer", action: #selector(quitApp), keyEquivalent: "q")
-            quitItem.target = self
-            menu.addItem(quitItem)
-
-            if let button = statusItem.button {
-                menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height + 4), in: button)
-            }
+        if event.type == .rightMouseUp {
+            NSObject.cancelPreviousPerformRequests(withTarget: self)
+            showContextMenu()
             return
         }
 
-        if isBreakActive {
-            if popupWindow != nil {
-                closePopup()
-            } else {
-                showNotchPopup()
-            }
-            return
+        if event.clickCount == 2 {
+            NSObject.cancelPreviousPerformRequests(withTarget: self)
+            isExpanded.toggle()
+            updateDisplay()
+        } else if event.clickCount == 1 {
+            self.perform(#selector(handleSingleClick), with: nil, afterDelay: NSEvent.doubleClickInterval)
         }
+    }
 
+    @objc func handleSingleClick() {
         wasRunningBeforeSleep = false
-        toggleTimer()
+        if isBreakActive {
+            popupWindow != nil ? closePopup() : showNotchPopup()
+            return
+        }
+        isRunning ? pauseTimer() : startTimer()
     }
 
-    @objc func toggleTimer() {
-        if isRunning {
-            pauseTimer()
-        } else {
-            startTimer()
+    func showContextMenu() {
+        let menu = NSMenu()
+        menu.addItem(NSMenuItem(title: isExpanded ? "Collapse" : "Expand", action: #selector(toggleExpand), keyEquivalent: "e"))
+        menu.addItem(NSMenuItem(title: isRunning ? "Pause" : "Resume", action: #selector(toggleTimer), keyEquivalent: "p"))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
+
+        if let button = statusItem.button {
+            menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height + 4), in: button)
         }
     }
 
+    @objc func toggleExpand() { isExpanded.toggle(); updateDisplay() }
+    @objc func toggleTimer() { wasRunningBeforeSleep = false; isRunning ? pauseTimer() : startTimer() }
+    @objc func quitApp() { NSApplication.shared.terminate(nil) }
+
+    // Timer Logic
     func startTimer() {
         isRunning = true
-        let currentSeconds = isBreakActive ? breakSecondsRemaining : workSecondsRemaining
-        targetEndTime = Date().addingTimeInterval(TimeInterval(currentSeconds))
-        
+        let current = isBreakActive ? breakSeconds : workSeconds
+        targetEndTime = Date().addingTimeInterval(TimeInterval(current))
         updateDisplay()
+
         timer?.invalidate()
-        
-        let t = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             self?.tick()
         }
-        RunLoop.current.add(t, forMode: .common)
-        self.timer = t
     }
 
     func pauseTimer() {
         isRunning = false
         if let target = targetEndTime {
-            let remaining = max(0, Int(ceil(target.timeIntervalSinceNow)))
-            if isBreakActive {
-                breakSecondsRemaining = remaining
-            } else {
-                workSecondsRemaining = remaining
-            }
+            let left = max(0, Int(ceil(target.timeIntervalSinceNow)))
+            if isBreakActive { breakSeconds = left } else { workSeconds = left }
         }
         targetEndTime = nil
-        updateDisplay()
         timer?.invalidate()
         timer = nil
-    }
-
-    @objc func quitApp() {
-        closePopup()
-        NSApplication.shared.terminate(nil)
+        updateDisplay()
     }
 
     func tick() {
         guard isRunning, let target = targetEndTime else { return }
-
-        let remaining = max(0, Int(ceil(target.timeIntervalSinceNow)))
+        let left = max(0, Int(ceil(target.timeIntervalSinceNow)))
 
         if isBreakActive {
-            breakSecondsRemaining = remaining
-            breakModel?.secondsRemaining = remaining
-
-            if remaining <= 0 {
-                endBreak()
-            }
+            breakSeconds = left
+            breakModel?.secondsRemaining = left
+            if left <= 0 { endBreak() }
         } else {
-            workSecondsRemaining = remaining
-            if remaining <= 0 {
-                startBreak()
-            }
+            workSeconds = left
+            if left <= 0 { startBreak() }
         }
         updateDisplay()
     }
 
     func startBreak() {
         isBreakActive = true
-        breakSecondsRemaining = BREAK_DURATION_SECONDS
-        targetEndTime = Date().addingTimeInterval(TimeInterval(BREAK_DURATION_SECONDS))
+        breakSeconds = BREAK_SECONDS
+        targetEndTime = Date().addingTimeInterval(TimeInterval(BREAK_SECONDS))
         updateDisplay()
         showNotchPopup()
+        playBreakSound()
+        triggerHaptics()
     }
 
     func endBreak() {
+        audioPlayer?.stop()
         isBreakActive = false
         closePopup()
-        workSecondsRemaining = WORK_DURATION_SECONDS
-        targetEndTime = Date().addingTimeInterval(TimeInterval(WORK_DURATION_SECONDS))
+        workSeconds = WORK_SECONDS
+        targetEndTime = Date().addingTimeInterval(TimeInterval(WORK_SECONDS))
         updateDisplay()
-
-        if !AUTO_RESTART {
-            pauseTimer()
-        }
+        triggerHaptics()
     }
 
+    // Notch Window
     func showNotchPopup() {
         guard let screen = NSScreen.main, popupWindow == nil else { return }
 
-        let winWidth: CGFloat = 600
-        let winHeight: CGFloat = 160
-        let notchBottomY = screen.frame.maxY - screen.safeAreaInsets.top
+        let w: CGFloat = 600
+        let h: CGFloat = 160
+        let notchY = screen.frame.maxY - screen.safeAreaInsets.top
 
         let panel = NSPanel(
-            contentRect: NSRect(
-                x: screen.frame.midX - (winWidth / 2),
-                y: notchBottomY - winHeight,
-                width: winWidth,
-                height: winHeight
-            ),
+            contentRect: NSRect(x: screen.frame.midX - (w / 2), y: notchY - h, width: w, height: h),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
-
         panel.level = .floating
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.backgroundColor = .clear
         panel.isOpaque = false
-        panel.hasShadow = false
-        panel.ignoresMouseEvents = false
 
-        let model = BreakModel(secondsRemaining: breakSecondsRemaining)
-        model.onDismissAnimationDone = { [weak self] in
-            panel.close()
-            self?.popupWindow = nil
-            self?.breakModel = nil
-        }
+        let model = BreakModel(seconds: breakSeconds)
+        panel.contentView = NSHostingView(rootView: NotchBreakView(model: model, onDismiss: { [weak self] in
+            self?.closePopup()
+        }))
 
-        panel.contentView = NSHostingView(rootView: NotchBreakView(model: model))
         panel.orderFrontRegardless()
         self.popupWindow = panel
         self.breakModel = model
     }
 
     func closePopup() {
-        if let model = breakModel {
-            model.dismissPopup()
-        } else {
-            popupWindow?.close()
-            popupWindow = nil
-            breakModel = nil
-        }
+        popupWindow?.close()
+        popupWindow = nil
+        breakModel = nil
     }
 }
 
+// Run
 let app = NSApplication.shared
 app.setActivationPolicy(.accessory)
 let delegate = AppDelegate()
