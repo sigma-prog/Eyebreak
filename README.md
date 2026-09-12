@@ -7,7 +7,7 @@ A minimalist, lightweight tool designed to reduce digital eye strain
 [![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](#license)
 [![Built with Swift](https://img.shields.io/badge/Built%20with-Swift-FA7343?style=flat-square&logo=swift&logoColor=white)](#)
 
-<img width="756" height="172" alt="demo" src="https://github.com/user-attachments/assets/baa3daef-1f5f-4b24-88da-0db6057f8ea5" />
+<img width="1202" height="272" alt="demo" src="https://github.com/user-attachments/assets/097924d6-5362-4e0c-a2a1-441634c3ff17" />
 
 What the menu bar looks like: <img width="109" height="32" alt="Screenshot 2026-09-11 at 7 28 09 pm" src="https://github.com/user-attachments/assets/ec29eb25-0d19-4ea6-a0a5-d131dd4e6d25" />
 
