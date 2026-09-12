@@ -16,6 +16,7 @@ What the menu bar looks like:
 # Specs:
 - Uses around 1.5% CPU
 - 10 MB of memory
+- App size of 515kb
 
 # Features:
 - A small notice will popup when the time is up
