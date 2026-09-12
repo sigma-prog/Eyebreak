@@ -1,6 +1,6 @@
 # Eyebreak
 
-A minimalist, lightweight tool designed to reduce digital eye strain
+A minimalist, lightweight tool designed to reduce eye strain
 
 [![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon-blue?logo=apple&style=flat-square)](#compatibility)
 ![Release](https://img.shields.io/badge/release-v1.2-brightgreen?style=flat-square)
